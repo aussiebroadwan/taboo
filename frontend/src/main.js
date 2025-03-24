@@ -23,7 +23,7 @@ const setupWebsocket = (scene) => {
     // Build the WebSocket URL based on the frontend's location.
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     const hostname = window.location.host;
-    const wsUrl = `${protocol}${hostname}/ws`;
+    const wsUrl = `${protocol}${hostname}/.proxy/ws`;
 
     // Prepare Connection
     const wsClient = new Client(wsUrl, { reconnectInterval: 3000 });
