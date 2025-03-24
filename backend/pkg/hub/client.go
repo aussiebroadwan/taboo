@@ -9,9 +9,10 @@ import (
 
 // Client represents a single WebSocket connection.
 type Client struct {
-	Hub  *Hub
-	Conn *websocket.Conn
-	Send chan []byte
+	RemoteAddr string
+	Hub        *Hub
+	Conn       *websocket.Conn
+	Send       chan []byte
 }
 
 // readPump pumps messages from the WebSocket connection to the Hub.
@@ -34,7 +35,7 @@ func (c *Client) readPump() {
 		_, message, err := c.Conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("readPump error: %v", err)
+				log.Printf("websocket.client: readPump error: %v", err)
 			}
 			break
 		}
@@ -74,7 +75,7 @@ func (c *Client) writePump() {
 
 			// Write any queued messages in one WebSocket message.
 			n := len(c.Send)
-			for i := 0; i < n; i++ {
+			for range n {
 				w.Write([]byte("\n"))
 				w.Write(<-c.Send)
 			}

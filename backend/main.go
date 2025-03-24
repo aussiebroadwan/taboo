@@ -21,6 +21,6 @@ func main() {
 	http.HandleFunc("/ws", h.ServeWs)
 	RegisterFrontend()
 
-	log.Println("Server listening on :8080")
+	log.Println("api: listening on ':8080'")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

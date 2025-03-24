@@ -55,7 +55,9 @@ func (h *Hub) Run() {
 		select {
 		case client := <-h.Register:
 			h.Clients[client] = true
-			log.Println("Client registered. Total clients:", len(h.Clients))
+
+			log.Printf("websocket: client (%s) connected; total clients: %d", client.RemoteAddr, len(h.Clients))
+
 			if h.OnConnect != nil {
 				h.OnConnect(client)
 			}
@@ -63,7 +65,8 @@ func (h *Hub) Run() {
 			if _, ok := h.Clients[client]; ok {
 				delete(h.Clients, client)
 				close(client.Send)
-				log.Println("Client unregistered. Total clients:", len(h.Clients))
+
+				log.Printf("websocket: client (%s) disconnected; total clients: %d", client.RemoteAddr, len(h.Clients))
 
 				if h.OnDisconnect != nil {
 					h.OnDisconnect(client)
@@ -92,13 +95,15 @@ func (h *Hub) unregister(client *Client) {
 func (h *Hub) ServeWs(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("ServeWs: upgrade error:", err)
+		log.Println("websocket: upgrade error:", err)
 		return
 	}
+
 	client := &Client{
-		Hub:  h,
-		Conn: conn,
-		Send: make(chan []byte, maxMessageSize),
+		RemoteAddr: r.RemoteAddr,
+		Hub:        h,
+		Conn:       conn,
+		Send:       make(chan []byte, maxMessageSize),
 	}
 	h.Register <- client
 

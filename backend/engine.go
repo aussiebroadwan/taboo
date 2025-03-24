@@ -24,8 +24,6 @@ const (
 const (
 	DrawTime = 90 * time.Second
 	WaitTime = 90 * time.Second
-
-	recordFile = "games.log"
 )
 
 type Engine struct {
@@ -48,7 +46,7 @@ func NewEngine(hub *hub.Hub) *Engine {
 
 	lastGameId, err := queries.GetLastGameID(context.Background())
 	if err != nil {
-		log.Fatalf("Failed to get last Game ID: %v", err)
+		log.Fatalf("engine: failed to get last game_id: %v", err)
 	}
 
 	engine := &Engine{
@@ -64,7 +62,7 @@ func NewEngine(hub *hub.Hub) *Engine {
 	engine.currentPickIndex = 0
 
 	if err = engine.saveGame(); err != nil {
-		log.Fatalf("Failed to save initial game: %v", err)
+		log.Fatalf("engine: failed to save initial game: %v", err)
 	}
 
 	return engine
@@ -142,8 +140,10 @@ func (e *Engine) run() {
 					e.nextGameTime = time.Now().Add(DrawTime + WaitTime)
 					e.gameId++
 
+					log.Printf("engine: drawing game (%d) with picks %+v", e.gameId, e.currentDraw)
+
 					if err := e.saveGame(); err != nil {
-						log.Printf("Failed to save game [%d] to DB... Continuing...: %v", e.gameId, err)
+						log.Printf("engine: failed to save game [%d] to db... continuing...: %v", e.gameId, err)
 					}
 
 					// Broadcast updated game state.
@@ -176,7 +176,7 @@ func CreateNextPickMessage(pick uint8) []byte {
 	}
 	data, err := proto.Marshal(serverMsg)
 	if err != nil {
-		log.Printf("Error marshaling NextPick: %v", err)
+		log.Printf("engine: error marshaling NextPick: %v", err)
 		return nil
 	}
 
@@ -216,7 +216,7 @@ func CreateGameStateMessage(e *Engine) []byte {
 	}
 	data, err := proto.Marshal(serverMsg)
 	if err != nil {
-		log.Printf("Error marshaling GameInfo: %v", err)
+		log.Printf("engine: error marshaling GameInfo: %v", err)
 		return nil
 	}
 

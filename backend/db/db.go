@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"sync"
@@ -61,7 +60,7 @@ func GetDB() *sql.DB {
 		// Enable WAL mode
 		_, err = DB.Exec("PRAGMA journal_mode=WAL;")
 		if err != nil {
-			log.Fatal("Failed to enable WAL mode:", err)
+			log.Fatal("db: failed to enable WAL mode:", err)
 		}
 	})
 
@@ -80,13 +79,13 @@ func Close() error {
 	defer dbMu.Unlock()
 
 	if DB != nil {
-		slog.Info("Closing Database Connection")
+		log.Printf("db: closing database connection")
 		err := DB.Close()
 		DB = nil
 		dbOnce = sync.Once{} // Reset the dbOnce to allow re-initialization
 
 		if err != nil {
-			slog.Error("Error happened when closing the database file", slog.Any("err", err))
+			log.Printf("db: error happened when closing the database file: %v", err)
 		}
 		return err
 	}
@@ -105,13 +104,13 @@ func ExecuteTx(ctx context.Context, fn func(tx *sql.Tx) error) error {
 	err = fn(tx)
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			slog.Error("db failed to rollback transaction", slog.Any("rollback_error", rollbackErr))
+			log.Printf("db: failed to rollback transaction: %v", err)
 		}
 		return err
 	}
 
 	if commitErr := tx.Commit(); commitErr != nil {
-		slog.Error("db failed to commit transaction", slog.Any("commit_error", commitErr))
+		log.Printf("db: failed to commit transaction: %v", err)
 		return commitErr
 	}
 
@@ -123,7 +122,7 @@ func reconnect() error {
 	// Close the current connection
 	err := Close()
 	if err != nil {
-		log.Printf("Error closing database connection: %v", err)
+		log.Printf("db: error closing database connection: %v", err)
 	}
 
 	// Open a new connection
@@ -141,38 +140,37 @@ func reconnect() error {
 // RestoreDatabase replaces the current database with a new one and runs migrations.
 // If migrations fail, it restores the previous database.
 func RestoreDatabase(newDbPath string) error {
-	slog.Info("Starting database restore", slog.String("restore_file", newDbPath))
+	log.Printf("db: starting database restore '%s'", newDbPath)
 
 	// Close the current database connection
-	slog.Info("Closing existing database connection")
 	if err := Close(); err != nil {
-		slog.Error("Failed to close database before restore", slog.Any("err", err))
+		log.Printf("db: failed to close database before restore: %v", err)
 		return fmt.Errorf("failed to close database: %w", err)
 	}
 
 	// Backup the existing database
 	if _, err := os.Stat(DatabaseName); err == nil {
-		slog.Info("Creating database rollback backup", slog.String("backup_file", databaseRollbackFile))
+		log.Printf("db: creating database rollback backup '%s'", databaseRollbackFile)
 		err = copyFile(DatabaseName, databaseRollbackFile)
 		if err != nil {
-			slog.Error("Failed to create database rollback backup", slog.Any("err", err))
+			log.Printf("db: failed to create database rollback backup: %v", err)
 			return fmt.Errorf("failed to backup current database: %w", err)
 		}
 	}
 
 	// Replace the database with the new one
-	slog.Info("Replacing database with restore file")
+	log.Printf("db: replacing database with restore file")
 	err := copyFile(newDbPath, DatabaseName)
 	if err != nil {
-		slog.Error("Failed to replace database with restore file", slog.Any("err", err))
+		log.Printf("db: failed to replace database with restore file: %v", err)
 		return fmt.Errorf("failed to copy restore database: %w", err)
 	}
 
 	// Reconnect to the new database
-	slog.Info("Reconnecting to the new database")
+	log.Printf("db: reconnecting to the new database")
 	db, err := sql.Open("sqlite", "file:"+DatabaseName+"?_busy_timeout=5000&_journal_mode=WAL")
 	if err != nil {
-		slog.Error("Failed to reconnect to new database", slog.Any("err", err))
+		log.Printf("db: failed to reconnect to new database: %v", err)
 		restorePreviousDatabase()
 		return fmt.Errorf("failed to reopen new database: %w", err)
 	}
@@ -183,38 +181,38 @@ func RestoreDatabase(newDbPath string) error {
 	dbMu.Unlock()
 
 	// Run migrations
-	slog.Info("Running database migrations")
+	log.Printf("db: running database migrations")
 	err = runMigrations(DB)
 	if err != nil {
-		slog.Error("Database migrations failed", slog.Any("err", err))
+		log.Printf("db: database migrations failed: %v", err)
 		restorePreviousDatabase()
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
-	slog.Info("Database restored successfully")
+	log.Printf("db: database restored successfully")
 	return nil
 }
 
 // restorePreviousDatabase restores the rollback database if the restore fails.
 func restorePreviousDatabase() {
-	slog.Warn("Restoring previous database due to restore failure")
+	log.Printf("db: restoring previous database due to restore failure")
 
 	// Close the database before restoring the rollback
 	if err := Close(); err != nil {
-		slog.Error("Failed to close database during rollback", slog.Any("err", err))
+		log.Printf("db: failed to close database during rollback: %v", err)
 	}
 
 	// Restore the rollback database
 	err := copyFile(databaseRollbackFile, DatabaseName)
 	if err != nil {
-		slog.Error("Failed to restore rollback database", slog.Any("err", err))
+		log.Printf("db: failed to restore rollback database: %v", err)
 		return
 	}
 
 	// Reconnect to the rollback database
 	db, err := sql.Open("sqlite", "file:"+DatabaseName+"?_busy_timeout=5000&_journal_mode=WAL")
 	if err != nil {
-		slog.Error("Failed to reconnect to rollback database", slog.Any("err", err))
+		log.Printf("db: failed to reconnect to rollback database: %v", err)
 		return
 	}
 
@@ -226,13 +224,13 @@ func restorePreviousDatabase() {
 	// Run migrations again to ensure consistency
 	err = runMigrations(DB)
 	if err != nil {
-		slog.Error("Failed to re-run migrations on rollback database", slog.Any("err", err))
+		log.Printf("db: failed to re-run migrations on rollback database: %v", err)
 	}
 }
 
 // copyFile copies a file from src to dst.
 func copyFile(src, dst string) error {
-	slog.Info("Copying file", slog.String("source", src), slog.String("destination", dst))
+	log.Printf("db: copying file source %s destination %s", src, dst)
 
 	in, err := os.Open(filepath.Clean(src))
 	if err != nil {
@@ -277,6 +275,6 @@ func runMigrations(db *sql.DB) error {
 		return err
 	}
 
-	slog.Info("Migrations applied successfully")
+	log.Printf("db: migrations applied successfully")
 	return nil
 }
