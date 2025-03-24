@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"time"
 
+	"github.com/lcox74/tabo/backend/db"
+	"github.com/lcox74/tabo/backend/db/sqlc"
 	"github.com/lcox74/tabo/backend/pkg/api"
 	"github.com/lcox74/tabo/backend/pkg/hub"
 	"github.com/lcox74/tabo/backend/pkg/rng"
@@ -20,13 +24,15 @@ const (
 const (
 	DrawTime = 90 * time.Second
 	WaitTime = 90 * time.Second
+
+	recordFile = "games.log"
 )
 
 type Engine struct {
 	rngService *rng.RNGService
 	hub        *hub.Hub
 
-	gameId int
+	gameId int64
 
 	nextGameTime time.Time
 
@@ -38,17 +44,50 @@ type Engine struct {
 // NewEngine creates a new instance of the game engine as well
 // as gets the initial draw.
 func NewEngine(hub *hub.Hub) *Engine {
+	queries := sqlc.New(db.GetDB())
+
+	lastGameId, err := queries.GetLastGameID(context.Background())
+	if err != nil {
+		log.Fatalf("Failed to get last Game ID: %v", err)
+	}
+
 	engine := &Engine{
-		rngService: rng.NewRNGService(),
-		hub:        hub,
-		state:      StateDrawing,
+		rngService:   rng.NewRNGService(),
+		hub:          hub,
+		state:        StateDrawing,
+		gameId:       lastGameId + 1,
+		nextGameTime: time.Now().Add(DrawTime + WaitTime),
 	}
 
 	// Capture inital Draw
 	engine.currentDraw = engine.rngService.GetDraw()
 	engine.currentPickIndex = 0
 
+	if err = engine.saveGame(); err != nil {
+		log.Fatalf("Failed to save initial game: %v", err)
+	}
+
 	return engine
+}
+
+func (e *Engine) saveGame() error {
+	queries := sqlc.New(db.GetDB())
+
+	picksStr := ""
+	for idx := range e.currentDraw {
+		if idx == 0 {
+			picksStr = fmt.Sprintf("%d", e.currentDraw[idx])
+			continue
+		}
+
+		picksStr += fmt.Sprintf(",%d", e.currentDraw[idx])
+	}
+
+	return queries.CreateGame(context.Background(), &sqlc.CreateGameParams{
+		GameID: e.gameId,
+		Picks:  picksStr,
+	})
+
 }
 
 // run starts the game loop which switches between drawing and
@@ -102,6 +141,10 @@ func (e *Engine) run() {
 					// Update nextGameTime and increment game id as needed.
 					e.nextGameTime = time.Now().Add(DrawTime + WaitTime)
 					e.gameId++
+
+					if err := e.saveGame(); err != nil {
+						log.Printf("Failed to save game [%d] to DB... Continuing...: %v", e.gameId, err)
+					}
 
 					// Broadcast updated game state.
 					gameStateMsg := CreateGameStateMessage(e)

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -9,8 +8,6 @@ import (
 )
 
 func main() {
-	fmt.Println("Hello, World")
-
 	h := hub.NewHub()
 	go h.Run()
 
@@ -22,8 +19,8 @@ func main() {
 	}
 
 	http.HandleFunc("/ws", h.ServeWs)
+	RegisterFrontend()
 
 	log.Println("Server listening on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
-
 }

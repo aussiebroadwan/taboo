@@ -8,8 +8,8 @@ import { DESIGN_WIDTH, DESIGN_HEIGHT } from './constants';
 const setupWebsocket = (scene) => {
     // Build the WebSocket URL based on the frontend's location.
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-    const hostname = window.location.hostname;
-    const wsUrl = `${protocol}${hostname}:8080/ws`;
+    const hostname = window.location.host;
+    const wsUrl = `${protocol}${hostname}/ws`;
 
     // Prepare Connection
     const wsClient = new Client(wsUrl, { reconnectInterval: 3000 });
