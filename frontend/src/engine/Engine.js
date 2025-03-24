@@ -9,12 +9,16 @@ export class Engine {
     constructor(canvas, designWidth = 720, designHeight = 364) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
+        
         this.designWidth = designWidth;
         this.designHeight = designHeight;
         this.sf = 1; // scale factor (calculated from canvas container size)
-        this.components = []; // registered components
+        
         this.lastTime = performance.now();
         this.renderFrameId = null;
+
+        this.scenes = {};
+        this.currentScene = null;
 
         // Bind the resize handler and perform an initial resize.
         window.addEventListener('resize', this.updateCanvasSize.bind(this));
@@ -48,24 +52,44 @@ export class Engine {
     }
 
     /**
-     * Register a render component. The component is expected to implement:
-     * - update(dt)  for state updates.
-     * - render(ctx, sf) for drawing.
-     * @param {Object} component - The component instance.
+     * Registers a scene with a given name.
+     * @param {string} name - The unique name for the scene.
+     * @param {Scene} scene - The scene instance.
      */
-    registerComponent(component) {
-        this.components.push(component);
+    registerScene(name, scene) {
+        this.scenes[name] = scene;
     }
+
+    /**
+     * Sets the current scene by name.
+     * @param {string} name - The name of the scene to activate.
+     */
+    setScene(name) {
+        const newScene = this.scenes[name];
+        
+        if (!newScene) {
+            console.error(`Scene "${name}" not found.`);
+            return;
+        }
+        
+        if (this.currentScene && typeof this.currentScene.onExit === "function") {
+            this.currentScene.onExit();
+        }
+
+        this.currentScene = newScene;
+        if (this.currentScene && typeof this.currentScene.onEnter === "function") {
+            this.currentScene.onEnter();
+        }
+    }
+
 
     /**
      * Update each registered component.
      * @param {number} dt - Delta time (in milliseconds) since the last update.
      */
     update(dt) {
-        for (const comp of this.components) {
-            if (typeof comp.update === 'function') {
-                comp.update(dt);
-            }
+        if (this.currentScene) {
+            this.currentScene.update(dt);
         }
     }
 
@@ -75,11 +99,13 @@ export class Engine {
     render() {
         // Clear the entire canvas.
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // this.ctx.rect(0, 0, this.canvas.width, this.canvas.height);
+        // this.ctx.fillStyle = "#000000";
+        // this.ctx.fill();
 
-        for (const comp of this.components) {
-             if (typeof comp.render === 'function') {
-                comp.render(this.ctx, this.sf);
-             }
+        if (this.currentScene) {
+            this.currentScene.render(this.ctx, this.sf);
         }
     }
 

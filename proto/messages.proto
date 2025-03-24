@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package tabo;
+
+option go_package = "github.com/lcox74/tabo/backend/pkg/api";
+
+// Enum for the game state.
+enum GameState {
+  GAME_STATE_INVALID = 0;
+  GAME_STATE_DRAWING = 1;
+  GAME_STATE_COMPLETED = 2;
+}
+
+// Message containing the current game info.
+// game_id: the game identifier,
+// state: current game state,
+// next_game_time: the time (in epoch milliseconds) when the next game will be drawn.
+message GameInfo {
+  int32 game_id = 1;
+  GameState state = 2;
+  string next_game_time = 3;
+  repeated int32 picks = 4;
+}
+
+// Message containing the next pick number.
+message NextPick {
+  int32 pick_number = 1;
+}
+
+// Envelope message for all messages sent by the server.
+message ServerMessage {
+  oneof payload {
+    GameInfo game_info = 1;
+    NextPick next_pick = 2;
+  }
+}
+

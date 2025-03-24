@@ -56,7 +56,7 @@ export class GridComponent extends RenderComponent {
                 ctx.restore();
 
                 // Render grid of rounded rectangles.
-                ctx.fillStyle = COLORS.GRAY;
+                ctx.fillStyle = COLORS.GREY_BG;
                 ctx.translate(44 * sf, 0);
                 ctx.fill(grid);
             ctx.closePath();
@@ -83,7 +83,7 @@ export class GridComponent extends RenderComponent {
                 ctx.restore();
 
                 // Render grid of rounded rectangles.
-                ctx.fillStyle = COLORS.GRAY;
+                ctx.fillStyle = COLORS.GREY_BG;
                 ctx.translate(44 * sf, 0);
                 ctx.fill(grid);
             ctx.closePath();

@@ -1,62 +1,46 @@
 import { Engine } from "./engine";
+import { LiveDrawScene } from "./scenes/LiveDrawScene";
 
-import { LargeCounterComponent } from './components/LargeCounterComponent.js';
-import { SmallCounterComponent } from './components/SmallCounterComponent.js';
-import { GridComponent } from './components/GridComponent.js';
+import Client from './network/Client.js';
 
-import { DESIGN_WIDTH, DESIGN_HEIGHT, COLORS } from './constants';
+import { DESIGN_WIDTH, DESIGN_HEIGHT } from './constants';
+
+const setupWebsocket = (scene) => {
+    // Build the WebSocket URL based on the frontend's location.
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const hostname = window.location.hostname;
+    const wsUrl = `${protocol}${hostname}:8080/ws`;
+
+    // Prepare Connection
+    const wsClient = new Client(wsUrl, { reconnectInterval: 3000 });
+
+    // Set the Callback Events
+    wsClient.onOpen = () => console.log('Connected to server.');
+    wsClient.onMessage = scene.onWebsocketMessage;
+    wsClient.onClose = () => console.log('Disconnected from server.');
+    wsClient.onError = (error) => console.error('WebSocket error:', error);
+
+    // Establish the WebSocket connection.
+    wsClient.connect();
+}
 
 /* Entry Point */
 document.addEventListener('DOMContentLoaded', () => {
-
-    /* 
-     Presentation Layer: 
-     - Grab the canvas element from the DOM.
-     - Set its dimensions relative to the window.
-    */
     const canvas = document.getElementById('canvas');
     if (!canvas) {
         console.error('Canvas element with id "canvas" not found.');
         return;
     }
 
-
     // Create the engine instance. Here our design dimensions are 720x364.
     const engine = new Engine(canvas, DESIGN_WIDTH, DESIGN_HEIGHT);
 
-    // Create component instances:
-    // A large counter component (e.g., "NEXT GAME") at position (452, 20)
-    const timerCounter = new LargeCounterComponent(452, 20, "NEXT GAME", COLORS.BLUE);
-    timerCounter.setCount("99:99");
-   
-    let gameId = 10;
-    const drawCounter = new LargeCounterComponent(588, 20, "DRAWING GAME", COLORS.BLUE);
-    drawCounter.setCount(gameId);
-
-    // A small counter component for "Heads" at position (316, 20)
-    const smallCounterHeads = new SmallCounterComponent(316, 20, "Heads", COLORS.RED);
-    smallCounterHeads.setCount(10);
-
-    // A small counter component for "Tails" at position (384, 20)
-    const smallCounterTails = new SmallCounterComponent(384, 20, "Tails", COLORS.BLUE);
-    smallCounterTails.setCount(10);
-
-    // A grid component to display the 1-80 grid at position (0, 76)
-    const gridComp = new GridComponent(0, 76);
-
-    // Register the components with the engine.
-    engine.registerComponent(timerCounter);
-    engine.registerComponent(drawCounter);
-    engine.registerComponent(smallCounterHeads);
-    engine.registerComponent(smallCounterTails);
-    engine.registerComponent(gridComp);
-
+    const liveDrawScene = new LiveDrawScene(engine);
+    setupWebsocket(liveDrawScene);
+    
+    engine.registerScene("live-draw", liveDrawScene);
+    engine.setScene("live-draw");
+    
     // Start the engine's update and render loop.
-    engine.start(); 
-   
-    // Update gameId by 1 every 10 seconds and update the drawCounter component.
-    setInterval(() => {
-        gameId += 1;
-        drawCounter.setCount(gameId);
-    }, 10000);
+    engine.start();
 });
