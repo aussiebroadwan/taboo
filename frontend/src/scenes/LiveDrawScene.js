@@ -130,7 +130,6 @@ export class LiveDrawScene extends Scene {
             });
 
         } else if (msg.next_pick) {
-
             const pick = msg.next_pick.pick_number;
 
             this.picks.push(pick);

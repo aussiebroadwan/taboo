@@ -136,7 +136,7 @@ func (e *Engine) run() {
 					roundStart = now
 					e.currentDraw = e.rngService.GetDraw()
 					e.currentPickIndex = 0
-					drawTicker = time.NewTicker(DrawTime / 20)
+					drawTicker = time.NewTicker(DrawTime / 21)
 
 					// Update nextGameTime and increment game id as needed.
 					e.nextGameTime = time.Now().Add(DrawTime + WaitTime)

@@ -31,19 +31,26 @@ func NewRNGService() *RNGService {
 func (r *RNGService) drawLoop() {
 	buf := make([]uint8, numberOfPicks)
 	for {
+		// For each position in the draw...
 		for idx := range numberOfPicks {
+			// Keep trying until we get a number not already in buf[0:idx].
 			for {
 				pick := uint8(rand.Intn(maxNumber) + 1)
-				if !slices.Contains(r.picks[:idx], pick) {
+				if !slices.Contains(buf[:idx], pick) {
 					buf[idx] = pick
 					break
 				}
 			}
 		}
 
+		// Safely update the stored picks.
 		r.mu.Lock()
 		copy(r.picks, buf)
 		r.mu.Unlock()
+
+		// Sleep briefly before generating a new draw.
+		// Adjust the sleep time as needed.
+		time.Sleep(drawDelay)
 	}
 }
 
