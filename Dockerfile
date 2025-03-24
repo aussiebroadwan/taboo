@@ -58,11 +58,9 @@ RUN go mod download && go mod verify
 # Copy the built frontend files from the frontend stage
 COPY --from=webbuild /usr/src/app/dist ./dist
 
-# copy the rest of the source code and build
 COPY ./backend .
 
 RUN CGO_ENABLED=0 go build -v -o /bin/tabo .
-
 
 # =============================================================================
 # Stage: release
