@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"mime"
 	"net/http"
+	"os"
 	"path"
 	"strings"
 
@@ -14,6 +16,19 @@ import (
 var FrontendFS embed.FS
 
 func RegisterFrontend() {
+	http.HandleFunc("/client-id", func(w http.ResponseWriter, r *http.Request) {
+		clientId := os.Getenv("DISCORD_CLIENT_ID")
+
+		if clientId == "" {
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("{}"))
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(fmt.Sprintf(`{ "clientId": "%s" }`, clientId)))
+	})
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Normalize the request path
 		requestPath := strings.TrimPrefix(r.URL.Path, "/")

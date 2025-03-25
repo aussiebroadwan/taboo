@@ -13,9 +13,14 @@ const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.has("frame_id")) {
     usingDiscordSDK = true;
 
-    // Instantiate and set up the Discord SDK.
-    const discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID);
-    discordSdk.ready().then(() => console.log("Discord SDK is ready"));
+    fetch('/client-id')
+        .then(response => response.json())
+        .then(data => {
+            // Instantiate and set up the Discord SDK.
+            const discordSdk = new DiscordSDK(data.clientId);
+            discordSdk.ready().then(() => console.log("Discord SDK is ready"));
+        })
+        .catch(error => console.error('Error fetching client ID:', error));
 }
 
 const setupWebsocket = (scene) => {
