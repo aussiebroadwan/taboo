@@ -3,6 +3,7 @@ package hub
 import (
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -56,7 +57,11 @@ func (h *Hub) Run() {
 		case client := <-h.Register:
 			h.Clients[client] = true
 
-			log.Printf("websocket: client (%s) connected; total clients: %d", client.RemoteAddr, len(h.Clients))
+			if client.DiscordUser {
+				log.Printf("websocket: discord client (%s) connected; total clients: %d", client.RemoteAddr, len(h.Clients))
+			} else {
+				log.Printf("websocket: web client (%s) connected; total clients: %d", client.RemoteAddr, len(h.Clients))
+			}
 
 			if h.OnConnect != nil {
 				h.OnConnect(client)
@@ -66,7 +71,11 @@ func (h *Hub) Run() {
 				delete(h.Clients, client)
 				close(client.Send)
 
-				log.Printf("websocket: client (%s) disconnected; total clients: %d", client.RemoteAddr, len(h.Clients))
+				if client.DiscordUser {
+					log.Printf("websocket: discord client (%s) disconnected; total clients: %d", client.RemoteAddr, len(h.Clients))
+				} else {
+					log.Printf("websocket: web client (%s) disconnected; total clients: %d", client.RemoteAddr, len(h.Clients))
+				}
 
 				if h.OnDisconnect != nil {
 					h.OnDisconnect(client)
@@ -99,15 +108,19 @@ func (h *Hub) ServeWs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	raddr := r.RemoteAddr
+	if val := r.Header.Get("X-Forwarded-For"); val != "" {
+		raddr = val
+	}
+
 	client := &Client{
-		RemoteAddr: r.RemoteAddr,
-		Hub:        h,
-		Conn:       conn,
-		Send:       make(chan []byte, maxMessageSize),
+		RemoteAddr:  raddr,
+		DiscordUser: strings.Contains(r.Header.Get("Origin"), "discordsays.com"),
+		Hub:         h,
+		Conn:        conn,
+		Send:        make(chan []byte, maxMessageSize),
 	}
 	h.Register <- client
-
-	log.Printf("hub: new connection headers %+v", r.Header)
 
 	go client.writePump()
 	go client.readPump()

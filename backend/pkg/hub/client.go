@@ -9,10 +9,11 @@ import (
 
 // Client represents a single WebSocket connection.
 type Client struct {
-	RemoteAddr string
-	Hub        *Hub
-	Conn       *websocket.Conn
-	Send       chan []byte
+	RemoteAddr  string
+	DiscordUser bool
+	Hub         *Hub
+	Conn        *websocket.Conn
+	Send        chan []byte
 }
 
 // readPump pumps messages from the WebSocket connection to the Hub.
