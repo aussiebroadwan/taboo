@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package tabo;
 
-option go_package = "github.com/lcox74/tabo/backend/pkg/api";
+option go_package = "github.com/lcox74/tabo/backend/pkg/web";
 
 // Enum for the game state.
 enum GameState {

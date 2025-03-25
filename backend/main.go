@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/lcox74/tabo/backend/pkg/hub"
+	"github.com/lcox74/tabo/backend/pkg/web"
 )
 
 func main() {
@@ -19,7 +20,9 @@ func main() {
 	}
 
 	http.HandleFunc("/ws", h.ServeWs)
-	RegisterFrontend()
+
+	web.RegisterAPI()
+	web.RegisterFrontend()
 
 	log.Println("api: listening on ':8080'")
 	log.Fatal(http.ListenAndServe(":8080", nil))

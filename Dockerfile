@@ -56,7 +56,7 @@ COPY backend/go.mod backend/go.sum ./
 RUN go mod download && go mod verify
 
 # Copy the built frontend files from the frontend stage
-COPY --from=webbuild /usr/src/app/dist ./dist
+COPY --from=webbuild /usr/src/app/dist ./assets/dist
 
 COPY ./backend .
 

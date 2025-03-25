@@ -8,9 +8,9 @@ import (
 
 	"github.com/lcox74/tabo/backend/db"
 	"github.com/lcox74/tabo/backend/db/sqlc"
-	"github.com/lcox74/tabo/backend/pkg/api"
 	"github.com/lcox74/tabo/backend/pkg/hub"
 	"github.com/lcox74/tabo/backend/pkg/rng"
+	"github.com/lcox74/tabo/backend/pkg/web"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -166,11 +166,11 @@ func (e *Engine) run() {
 // CreateNextPickMessage creates a binary message for the next pick.
 // Replace this with your actual protobuf encoding.
 func CreateNextPickMessage(pick uint8) []byte {
-	nextPick := &api.NextPick{
+	nextPick := &web.NextPick{
 		PickNumber: int32(pick),
 	}
-	serverMsg := &api.ServerMessage{
-		Payload: &api.ServerMessage_NextPick{
+	serverMsg := &web.ServerMessage{
+		Payload: &web.ServerMessage_NextPick{
 			NextPick: nextPick,
 		},
 	}
@@ -186,14 +186,14 @@ func CreateNextPickMessage(pick uint8) []byte {
 // CreateGameStateMessage creates a binary message for the current game state.
 // Replace this with your actual protobuf encoding.
 func CreateGameStateMessage(e *Engine) []byte {
-	var state api.GameState
+	var state web.GameState
 	switch e.state {
 	case StateDrawing:
-		state = api.GameState_GAME_STATE_DRAWING
+		state = web.GameState_GAME_STATE_DRAWING
 	case StateWaiting:
-		state = api.GameState_GAME_STATE_COMPLETED
+		state = web.GameState_GAME_STATE_COMPLETED
 	default:
-		state = api.GameState_GAME_STATE_INVALID
+		state = web.GameState_GAME_STATE_INVALID
 	}
 
 	var picks []int32
@@ -203,14 +203,14 @@ func CreateGameStateMessage(e *Engine) []byte {
 		}
 	}
 
-	gameInfo := &api.GameInfo{
+	gameInfo := &web.GameInfo{
 		GameId:       int32(e.gameId),
 		State:        state,
 		NextGameTime: e.nextGameTime.Format(time.RFC3339),
 		Picks:        picks,
 	}
-	serverMsg := &api.ServerMessage{
-		Payload: &api.ServerMessage_GameInfo{
+	serverMsg := &web.ServerMessage{
+		Payload: &web.ServerMessage_GameInfo{
 			GameInfo: gameInfo,
 		},
 	}
