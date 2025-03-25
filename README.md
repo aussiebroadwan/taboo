@@ -6,7 +6,7 @@ pubs are spent drinking, horse betting and losing a house deposit worth of
 money on Keno. Keno brings more joy to our remaining brain cells than it 
 probably should, so to quench our insatiable need to watch the numbers 1 to
 80 flash on a screen we have built a Keno-lite dubbed Taboo. The live web 
-view is available at taboo.tabdiscord.com.
+view is available at https://taboo.tabdiscord.com.
 
 ## What is Keno?
 
@@ -35,8 +35,11 @@ application and a Discord Activity.
 
 ## Deployment with Docker
 
-Taboo is deployed exclusively with Docker. Use the following Docker Compose 
-configuration to run the application:
+Taboo is deployed exclusively with Docker. Note: A Discord app is required to 
+enable the Discord Activity integration. You must provide the Discord client 
+secret and client id as environment variables for Taboo to function properly. 
+For guidance on setting up your Discord app, refer to the 
+[Discord Developer Docs].
 
 ```yaml
 services:
@@ -46,6 +49,7 @@ services:
       - "8080:8080"
     environment:
       - DISCORD_CLIENT_SECRET=<your-secret-here>
+      - DISCORD_CLIENT_ID=<your-client-id-here>
     restart: always
     volumes:
       - ./data:/data
@@ -72,3 +76,6 @@ consistent and reliable environment across platforms.
 Please note that support and development for Taboo will be inconsistent. We 
 welcome any help with additional features or improvements—community 
 contributions are always appreciated!
+
+
+[Discord Developer Docs]: https://discord.com/developers/docs/quick-start/getting-started
