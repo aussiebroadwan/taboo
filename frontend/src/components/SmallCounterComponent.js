@@ -56,7 +56,7 @@ export class SmallCounterComponent extends RenderComponent {
                 // Count text
                 ctx.font = 'bold ' + (24 * sf) + 'px Arial';
                 ctx.fillStyle = COLORS.WHITE;
-                ctx.fillText(`${this._count}`, 32 * sf, 36 * sf);
+                ctx.fillText(`${this._count}`, 32 * sf, 37 * sf );
             ctx.closePath();
         ctx.restore();
     }

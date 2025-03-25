@@ -183,7 +183,7 @@ export class PickComponent extends RenderComponent {
         ctx.font = `bold ${currentFontSize * sf}px Arial`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(this.pickNumber, 0, 0);
+        ctx.fillText(this.pickNumber, 0, 1 * sf);
         ctx.restore();
     }
 }
