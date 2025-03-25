@@ -13,7 +13,7 @@ const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.has("frame_id")) {
     usingDiscordSDK = true;
 
-    fetch('/client-id')
+    fetch('/.proxy/client-id')
         .then(response => response.json())
         .then(data => {
             // Instantiate and set up the Discord SDK.
