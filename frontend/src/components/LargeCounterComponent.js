@@ -55,7 +55,7 @@ export class LargeCounterComponent extends RenderComponent {
                 // Header text
                 ctx.font = 'bold ' + (10 * sf) + 'px Arial';
                 ctx.fillStyle = COLORS.WHITE;
-                ctx.fillText(this.title, 66 * sf, 14 * sf);
+                ctx.fillText(this.title, 66 * sf, 13 * sf);
             ctx.closePath();
         ctx.restore();
     }
