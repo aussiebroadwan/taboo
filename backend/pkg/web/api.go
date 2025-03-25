@@ -19,8 +19,8 @@ type GetGameIDResponse struct {
 }
 
 // RegisterAPI registers the API endpoints for game-related requests.
-func RegisterAPI() {
-	http.HandleFunc("/api/game/{gameid}", func(w http.ResponseWriter, r *http.Request) {
+func RegisterAPI(router *http.ServeMux) {
+	router.HandleFunc("/api/game/{gameid}", func(w http.ResponseWriter, r *http.Request) {
 		gameIdStr := r.PathValue("gameid")
 
 		gameId, err := strconv.Atoi(gameIdStr)

@@ -28,20 +28,50 @@ if (usingDiscordSDK) {
 const setupWebsocket = (scene) => {
     // Build the WebSocket URL based on the frontend's location.
     const wsProtocol = protocol === 'https:' ? 'wss://' : 'ws://';
-    const hostname = window.location.host;
     const wsUrl = `${wsProtocol}${hostname}${usingDiscordSDK ? '/.proxy' : ''}/ws`;
 
     // Prepare Connection
     const wsClient = new Client(wsUrl, { reconnectInterval: 3000 });
-
-    // Set the Callback Events
-    wsClient.onOpen = () => console.log('Connected to server.');
     wsClient.onMessage = scene.onWebsocketMessage;
-    wsClient.onClose = () => console.log('Disconnected from server.');
-    wsClient.onError = (error) => console.error('WebSocket error:', error);
-
-    // Establish the WebSocket connection.
     wsClient.connect();
+}
+
+function route(engine) {
+    const pathRe = /\/game\/\d+/g;
+
+    if (path.match(pathRe)) {
+        // Extract game id if needed.
+        const segments = path.split('/');
+        const gameIdStr = segments[2];
+
+        // Convert the gameId string to a number and verify it's numeric.
+        const gameId = Number(gameIdStr);
+        if (isNaN(gameId)) {
+            console.error("router: invalid game id");
+            window.location.href = '/';
+            return;
+        }
+
+        // Create and register the PreviousDrawScene for the specified game.
+        const previousDrawScene = new PreviousDrawScene(engine, gameId, usingDiscordSDK);
+        engine.registerScene("game", previousDrawScene);
+        engine.setScene("game");
+
+    } else if (path === "/") {
+
+        // At the homepage, use the LiveDrawScene.
+        const liveDrawScene = new LiveDrawScene(engine);
+        setupWebsocket(liveDrawScene);
+
+        engine.registerScene("live-draw", liveDrawScene);
+        engine.setScene("live-draw");
+
+    } else {
+        // For any unknown path, log the error and redirect to the homepage.
+        console.log("router: page not found routing to live");
+        window.location.href = '/';
+        return;
+    }
 }
 
 /* Entry Point */
@@ -55,33 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Create the engine instance. Here our design dimensions are 720x364.
     const engine = new Engine(canvas, DESIGN_WIDTH, DESIGN_HEIGHT);
 
-    if (path.startsWith('/game/')) {
-        // Extract game id if needed.
-        const segments = path.split('/');
-        const gameIdStr = segments[2] || null;
-
-        if (!gameIdStr) return;
-
-        // Convert the gameId string to a number and verify it's numeric.
-        const gameId = Number(gameIdStr);
-        if (isNaN(gameId)) {
-            console.log("router: invalid game id");
-            window.location.href = '/';
-            return;
-        }
-
-        const previousDrawScene = new PreviousDrawScene(engine, gameId, usingDiscordSDK);
-        engine.registerScene("game", previousDrawScene);
-        engine.setScene("game");
-    } else {
-
-        const liveDrawScene = new LiveDrawScene(engine);
-        setupWebsocket(liveDrawScene);
-
-        engine.registerScene("live-draw", liveDrawScene);
-        engine.setScene("live-draw");
-    }
-
+    // Execute routing logic to initialise the appropriate scene.
+    route(engine);
 
     // Start the engine's update and render loop.
     engine.start();

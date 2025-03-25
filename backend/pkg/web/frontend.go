@@ -42,9 +42,9 @@ func serveEmbeddedFile(w http.ResponseWriter, embedPath string) error {
 }
 
 // RegisterFrontend registers the HTTP handlers for serving the frontend assets.
-func RegisterFrontend() {
+func RegisterFrontend(router *http.ServeMux) {
 	// Handler for serving the Discord client ID.
-	http.HandleFunc("/client-id", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/client-id", func(w http.ResponseWriter, r *http.Request) {
 		clientId := os.Getenv("DISCORD_CLIENT_ID")
 		if clientId == "" {
 			// Return an empty JSON object if the client ID is not set.
@@ -60,7 +60,7 @@ func RegisterFrontend() {
 
 	// Handler for game routes (e.g. /game/123). This always serves index.html
 	// to allow client-side routing in the SPA.
-	http.HandleFunc("/game/{gameid}", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/game/{gameid}", func(w http.ResponseWriter, r *http.Request) {
 		if err := serveEmbeddedFile(w, "dist/index.html"); err != nil {
 			http.Error(w, "index.html not found", http.StatusInternalServerError)
 		}
@@ -69,7 +69,7 @@ func RegisterFrontend() {
 	// Catch-all handler for serving static assets.
 	// If a file is not found, it falls back to serving index.html
 	// to support client-side routing (e.g. for a Vue or React SPA).
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Normalize the request path. Default to index.html if empty.
 		requestPath := strings.TrimPrefix(r.URL.Path, "/")
 		if requestPath == "" {

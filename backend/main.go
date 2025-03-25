@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/lcox74/tabo/backend/pkg/hub"
 	"github.com/lcox74/tabo/backend/pkg/web"
@@ -19,11 +20,22 @@ func main() {
 		engine.SendCurrentGameState(client)
 	}
 
-	http.HandleFunc("/ws", h.ServeWs)
+	router := http.NewServeMux()
 
-	web.RegisterAPI()
-	web.RegisterFrontend()
+	router.HandleFunc("/ws", h.ServeWs)
 
-	log.Println("api: listening on ':8080'")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	web.RegisterAPI(router)
+	web.RegisterFrontend(router)
+
+	server := http.Server{
+		Addr:              "0.0.0.0:8080",
+		ReadHeaderTimeout: 5 * time.Second,
+		Handler: web.Use(
+			web.WithRecoverer,
+			web.WithCORS,
+			web.WithLogging,
+		)(router),
+	}
+
+	log.Fatal(server.ListenAndServe())
 }
