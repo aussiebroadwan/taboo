@@ -107,6 +107,8 @@ func (h *Hub) ServeWs(w http.ResponseWriter, r *http.Request) {
 	}
 	h.Register <- client
 
+	log.Printf("hub: new connection headers %+v", r.Header)
+
 	go client.writePump()
 	go client.readPump()
 }
