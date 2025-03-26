@@ -1,4 +1,3 @@
-// file: scenes/LiveDrawScene.js
 import { Scene } from '../engine';
 import { LargeCounterComponent } from '../components/LargeCounterComponent';
 import { SmallCounterComponent } from '../components/SmallCounterComponent';

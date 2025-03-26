@@ -2,7 +2,7 @@
 
 # Check if protoc is installed
 if ! command -v protoc >/dev/null 2>&1; then
-    echo "Error: protoc is not installed. Please install the Protocol Buffers compilera. See more https://grpc.io/docs/protoc-installation/"
+    echo "Error: protoc is not installed. Please install the Protocol Buffers compiler. See more https://grpc.io/docs/protoc-installation/"
     exit 1
 fi
 

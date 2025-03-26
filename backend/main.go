@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/lcox74/tabo/backend/pkg/hub"
-	"github.com/lcox74/tabo/backend/pkg/web"
+	"github.com/aussiebroadwan/taboo/backend/pkg/hub"
+	"github.com/aussiebroadwan/taboo/backend/pkg/web"
 )
 
 func main() {
@@ -25,6 +25,7 @@ func main() {
 	router.HandleFunc("/ws", h.ServeWs)
 
 	web.RegisterAPI(router)
+	web.RegisterSwagger(router)
 	web.RegisterFrontend(router)
 
 	server := http.Server{
