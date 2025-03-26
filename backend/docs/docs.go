@@ -9,7 +9,10 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "contact": {},
+        "contact": {
+            "name": "Lachlan Cox",
+            "url": "https://github.com/aussiebroadwan/taboo/issues"
+        },
         "license": {
             "name": "MIT",
             "url": "https://opensource.org/licenses/MIT"
@@ -192,9 +195,9 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "taboo.tabdiscord.com",
 	BasePath:         "/api",
-	Schemes:          []string{"http"},
+	Schemes:          []string{"https"},
 	Title:            "Taboo Game API",
 	Description:      "This API provides endpoints to fetch game results from the Taboo game backend, including the latest game, specific games by ID, and a range of games.",
 	InfoInstanceName: "swagger",

@@ -34,9 +34,11 @@ definitions:
           type: integer
         type: array
     type: object
-host: localhost:8080
+host: taboo.tabdiscord.com
 info:
-  contact: {}
+  contact:
+    name: Lachlan Cox
+    url: https://github.com/aussiebroadwan/taboo/issues
   description: This API provides endpoints to fetch game results from the Taboo game
     backend, including the latest game, specific games by ID, and a range of games.
   license:
@@ -130,5 +132,5 @@ paths:
       tags:
       - game
 schemes:
-- http
+- https
 swagger: "2.0"
