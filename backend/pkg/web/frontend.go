@@ -9,7 +9,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/lcox74/tabo/backend/assets"
+	"github.com/aussiebroadwan/taboo/backend/assets"
 )
 
 // serveEmbeddedFile opens a file from the embedded filesystem,

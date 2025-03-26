@@ -6,11 +6,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/lcox74/tabo/backend/db"
-	"github.com/lcox74/tabo/backend/db/sqlc"
-	"github.com/lcox74/tabo/backend/pkg/hub"
-	"github.com/lcox74/tabo/backend/pkg/rng"
-	"github.com/lcox74/tabo/backend/pkg/web"
+	"github.com/aussiebroadwan/taboo/backend/db"
+	"github.com/aussiebroadwan/taboo/backend/db/sqlc"
+	"github.com/aussiebroadwan/taboo/backend/pkg/hub"
+	"github.com/aussiebroadwan/taboo/backend/pkg/rng"
+	"github.com/aussiebroadwan/taboo/backend/pkg/web"
 	"google.golang.org/protobuf/proto"
 )
 

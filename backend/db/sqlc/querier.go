@@ -11,6 +11,8 @@ import (
 type Querier interface {
 	CreateGame(ctx context.Context, arg *CreateGameParams) error
 	GetGameByGameID(ctx context.Context, gameID int64) (*GetGameByGameIDRow, error)
+	GetGameByLastGameID(ctx context.Context) (*GetGameByLastGameIDRow, error)
+	GetGamesByRange(ctx context.Context, arg *GetGamesByRangeParams) ([]*GetGamesByRangeRow, error)
 	GetLastGameID(ctx context.Context) (int64, error)
 }
 

@@ -44,6 +44,70 @@ func (q *Queries) GetGameByGameID(ctx context.Context, gameID int64) (*GetGameBy
 	return &i, err
 }
 
+const getGameByLastGameID = `-- name: GetGameByLastGameID :one
+SELECT game_id, picks, created_at
+FROM games
+WHERE game_id = (
+    SELECT COALESCE(MAX(g.game_id), 0) - 1
+    FROM games g
+)
+`
+
+type GetGameByLastGameIDRow struct {
+	GameID    int64      `json:"game_id"`
+	Picks     string     `json:"picks"`
+	CreatedAt *time.Time `json:"created_at"`
+}
+
+func (q *Queries) GetGameByLastGameID(ctx context.Context) (*GetGameByLastGameIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getGameByLastGameID)
+	var i GetGameByLastGameIDRow
+	err := row.Scan(&i.GameID, &i.Picks, &i.CreatedAt)
+	return &i, err
+}
+
+const getGamesByRange = `-- name: GetGamesByRange :many
+SELECT game_id, picks, created_at
+FROM games
+WHERE game_id >= ?1
+ORDER BY game_id
+LIMIT ?2
+`
+
+type GetGamesByRangeParams struct {
+	Start int64 `json:"start"`
+	Limit int64 `json:"limit"`
+}
+
+type GetGamesByRangeRow struct {
+	GameID    int64      `json:"game_id"`
+	Picks     string     `json:"picks"`
+	CreatedAt *time.Time `json:"created_at"`
+}
+
+func (q *Queries) GetGamesByRange(ctx context.Context, arg *GetGamesByRangeParams) ([]*GetGamesByRangeRow, error) {
+	rows, err := q.db.QueryContext(ctx, getGamesByRange, arg.Start, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetGamesByRangeRow
+	for rows.Next() {
+		var i GetGamesByRangeRow
+		if err := rows.Scan(&i.GameID, &i.Picks, &i.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getLastGameID = `-- name: GetLastGameID :one
 SELECT COALESCE(MAX(game_id), 0) + 0 AS last_game_id
 FROM games
