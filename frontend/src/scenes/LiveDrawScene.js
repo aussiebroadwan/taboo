@@ -6,6 +6,13 @@ import { COLORS } from '../constants';
 import { PickComponent } from '../components/PickComponent';
 import { useDiscordSDK } from '../discordsdk';
 
+const MS_PER_MINUTE = 60_000;
+const MS_PER_SECOND = 1_000;
+
+const GameDrawTime = 1.5 * MS_PER_MINUTE;
+const GameWaitTime = 1.5 * MS_PER_SECOND;
+const GameTotalTime = GameDrawTime + GameWaitTime;
+
 export class LiveDrawScene extends Scene {
     constructor(engine) {
         super(engine)
@@ -56,7 +63,7 @@ export class LiveDrawScene extends Scene {
 
         setInterval(() => {
             this.timerCounter.setCount(this.getTimeLeftString());
-        }, 1000);
+        }, 1 * MS_PER_SECOND);
     }
 
     /**
@@ -101,8 +108,8 @@ export class LiveDrawScene extends Scene {
             return "00:00";
         }
 
-        const minutes = Math.floor(timeLeft / 60_000);
-        const seconds = Math.floor((timeLeft - minutes * 60_000) / 1_000);
+        const minutes = Math.floor(timeLeft / MS_PER_MINUTE);
+        const seconds = Math.floor((timeLeft - minutes * MS_PER_MINUTE) / MS_PER_SECOND);
 
         return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
@@ -111,6 +118,7 @@ export class LiveDrawScene extends Scene {
         if (msg.game_info) {
             this.gameId = msg.game_info.game_id;
             this.nextGameTime = Date.parse(msg.game_info.next_game_time);
+            const gameStart = this.nextGameTime - GameTotalTime;
 
             this.restartGame();
 
@@ -135,7 +143,7 @@ export class LiveDrawScene extends Scene {
                         type: 3, // "Watching {name}"
                         details: `Game ${this.gameId}`,
                         timestamps: {
-                            start: Date.now(),
+                            start: gameStart,
                             end: this.nextGameTime
                         }
                     }
