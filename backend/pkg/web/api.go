@@ -3,8 +3,11 @@ package web
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -25,6 +28,8 @@ func RegisterAPI(router *http.ServeMux) {
 	router.HandleFunc("GET /api/game/latest", GetLatestGameResults)
 	router.HandleFunc("GET /api/game/range", GetGameRangeResults)
 	router.HandleFunc("GET /api/game/{gameid}", GetSpecificGameResults)
+
+	router.HandleFunc("POST /api/token", PostDiscordAuthToken)
 
 	router.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "API endpoint not found", http.StatusNotFound)
@@ -204,5 +209,61 @@ func GetGameRangeResults(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(results); err != nil {
 		log.Printf("api: error encoding JSON response: %v", err)
 		http.Error(w, "Unexpected error responding", http.StatusInternalServerError)
+	}
+}
+
+// PostDiscordAuthToken handles POST requests to exchange a Discord code for
+// an access token. This is needed for the frontend application to use the
+// DiscordSDK properly.
+func PostDiscordAuthToken(w http.ResponseWriter, r *http.Request) {
+	// Define request and response structures
+	type requestBody struct {
+		Code string `json:"code"`
+	}
+	type responseToken struct {
+		AccessToken string `json:"access_token"`
+	}
+
+	// Parse incoming JSON
+	var req requestBody
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.Code) == "" {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Construct form values for Discord token exchange
+	form := url.Values{}
+	form.Set("client_id", os.Getenv("DISCORD_CLIENT_ID"))
+	form.Set("client_secret", os.Getenv("DISCORD_CLIENT_SECRET"))
+	form.Set("grant_type", "authorization_code")
+	form.Set("code", req.Code)
+
+	resp, err := http.PostForm("https://discord.com/api/oauth2/token", form)
+	if err != nil {
+		log.Printf("api: error contacting Discord: %v", err)
+		http.Error(w, "Failed to contact Discord", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		log.Printf("api: Discord token exchange failed [%d]: %s", resp.StatusCode, string(body))
+		http.Error(w, "Discord API error", http.StatusBadGateway)
+		return
+	}
+
+	var token responseToken
+	if err := json.NewDecoder(resp.Body).Decode(&token); err != nil {
+		log.Printf("api: error decoding Discord token response: %v", err)
+		http.Error(w, "Failed to parse token response", http.StatusInternalServerError)
+		return
+	}
+
+	// Send token response
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(token); err != nil {
+		log.Printf("api: error writing token JSON response: %v", err)
+		http.Error(w, "Failed to send response", http.StatusInternalServerError)
 	}
 }
