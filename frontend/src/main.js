@@ -5,25 +5,11 @@ import { PreviousDrawScene } from "./scenes/PreviousDrawScene";
 import Client from './network/Client.js';
 import { DESIGN_WIDTH, DESIGN_HEIGHT } from './constants';
 
-import { DiscordSDK } from "@discord/embedded-app-sdk";
-
-const urlParams = new URLSearchParams(window.location.search);
-const usingDiscordSDK = urlParams.has("frame_id");
+import { usingDiscordSDK } from "./discordsdk.js";
 
 const path = window.location.pathname;
 const protocol = window.location.protocol;
 const hostname = window.location.host;
-
-if (usingDiscordSDK) {
-    fetch(`${protocol}//${hostname}/.proxy/client-id`)
-        .then(response => response.json())
-        .then(data => {
-            // Instantiate and set up the Discord SDK.
-            const discordSdk = new DiscordSDK(data.clientId);
-            discordSdk.ready().then(() => console.log("Discord SDK is ready"));
-        })
-        .catch(error => console.error('Error fetching client ID:', error));
-}
 
 const setupWebsocket = (scene) => {
     // Build the WebSocket URL based on the frontend's location.
@@ -53,7 +39,7 @@ function route(engine) {
         }
 
         // Create and register the PreviousDrawScene for the specified game.
-        const previousDrawScene = new PreviousDrawScene(engine, gameId, usingDiscordSDK);
+        const previousDrawScene = new PreviousDrawScene(engine, gameId);
         engine.registerScene("game", previousDrawScene);
         engine.setScene("game");
 

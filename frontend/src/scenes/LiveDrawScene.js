@@ -4,6 +4,7 @@ import { SmallCounterComponent } from '../components/SmallCounterComponent';
 import { GridComponent } from '../components/GridComponent';
 import { COLORS } from '../constants';
 import { PickComponent } from '../components/PickComponent';
+import { useDiscordSDK } from '../discordsdk';
 
 export class LiveDrawScene extends Scene {
     constructor(engine) {
@@ -109,7 +110,7 @@ export class LiveDrawScene extends Scene {
     onWebsocketMessage(msg) {
         if (msg.game_info) {
             this.gameId = msg.game_info.game_id;
-            this.nextGameTime = Date.parse(msg.game_info.next_game_time); 
+            this.nextGameTime = Date.parse(msg.game_info.next_game_time);
 
             this.restartGame();
 
@@ -127,6 +128,19 @@ export class LiveDrawScene extends Scene {
                     this.smallCounterHeads.setCount(this.heads);
                 }
             });
+
+            useDiscordSDK((sdk) =>
+                sdk.commands.setActivity({
+                    activity: {
+                        type: 3, // "Watching {name}"
+                        details: `Game ${this.gameId}`,
+                        timestamps: {
+                            start: Date.now(),
+                            end: this.nextGameTime
+                        }
+                    }
+                }).then(() => console.log("discordsdk: set activity rich precense"))
+            );
 
         } else if (msg.next_pick) {
             const pick = msg.next_pick.pick_number;

@@ -3,9 +3,7 @@ services:
     build: .
     ports:
       - "8080:8080"
-    environment:
-      - DISCORD_CLIENT_SECRET=
-      - DISCORD_CLIENT_ID=
+    env_file: ".env"
     volumes:
       - tabo-data:/data
   
