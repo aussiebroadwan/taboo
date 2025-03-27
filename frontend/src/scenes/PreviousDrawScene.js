@@ -5,18 +5,19 @@ import { GridComponent } from '../components/GridComponent';
 import { COLORS } from '../constants';
 import { PickComponent } from '../components/PickComponent';
 
+import { usingDiscordSDK } from '../discordsdk';
+
 const protocol = window.location.protocol;
 const hostname = window.location.host;
 
 export class PreviousDrawScene extends Scene {
-    constructor(engine, gameId, usingDiscord = false) {
+    constructor(engine, gameId) {
         super(engine)
 
         this.gameId = gameId;
         this.picks = [];
         this.heads = 0;
         this.tails = 0;
-        this.usingDiscord = usingDiscord;
     }
 
     onEnter() {
@@ -44,7 +45,7 @@ export class PreviousDrawScene extends Scene {
             this.gridComp
         );
 
-        const apiCall = `${protocol}//${hostname}/${this.usingDiscord ? ".proxy/" : ""}/api/game/${this.gameId}`;
+        const apiCall = `${protocol}//${hostname}/${usingDiscordSDK ? ".proxy/" : ""}/api/game/${this.gameId}`;
 
         fetch(apiCall)
             .then(response => {
