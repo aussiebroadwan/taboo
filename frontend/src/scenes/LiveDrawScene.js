@@ -10,7 +10,7 @@ const MS_PER_MINUTE = 60_000;
 const MS_PER_SECOND = 1_000;
 
 const GameDrawTime = 1.5 * MS_PER_MINUTE;
-const GameWaitTime = 1.5 * MS_PER_SECOND;
+const GameWaitTime = 1.5 * MS_PER_MINUTE;
 const GameTotalTime = GameDrawTime + GameWaitTime;
 
 export class LiveDrawScene extends Scene {
