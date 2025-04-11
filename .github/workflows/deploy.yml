@@ -53,7 +53,7 @@ jobs:
       - name: Deploy docker stack
         uses: cssnr/stack-deploy-action@v1
         with:
-          name: "secrets.DEPLOY_STACK_NAME"
+          name: ${{ secrets.DEPLOY_STACK_NAME }}
           file: docker-compose.yml
           user: deploy
           host: ${{ secrets.DEPLOY_HOST }}
