@@ -1,10 +1,9 @@
 name: Deploy
 
 on:
-  push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
-
+    push:
+      branches:
+        - main
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: aussiebroadwan/taboo
@@ -37,7 +36,6 @@ jobs:
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name}}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha}}
 
   deploy:
@@ -61,7 +59,7 @@ jobs:
           cat <<EOF > docker-compose.yml
           services:
             taboo:
-              image: ${REGISTRY}/${IMAGE_NAME}:${GITHUB_REF_NAME}
+              image: ${REGISTRY}/${IMAGE_NAME}:latest
               environment:
                 - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
                 - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
@@ -73,7 +71,7 @@ jobs:
                 labels:
                   - "traefik.enable=true"
                   - "traefik.http.services.taboo.loadbalancer.server.port=8080"
-                  - "traefik.http.routers.taboo.rule=Host(`${TABOO_HOST}`)"
+                  - "traefik.http.routers.taboo.rule=Host(\`taboo.tabdiscord.com\`)"
                   - "traefik.http.routers.taboo.entrypoints=websecure"
                   - "traefik.http.routers.taboo.tls.certresolver=cloudflare"
               volumes:
