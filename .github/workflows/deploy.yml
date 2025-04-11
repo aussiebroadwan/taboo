@@ -73,7 +73,7 @@ jobs:
                 labels:
                   - "traefik.enable=true"
                   - "traefik.http.services.taboo.loadbalancer.server.port=8080"
-                  - "traefik.http.routers.taboo.rule=Host(${TABOO_HOST})"
+                  - "traefik.http.routers.taboo.rule=Host(`${TABOO_HOST}`)"
                   - "traefik.http.routers.taboo.entrypoints=websecure"
                   - "traefik.http.routers.taboo.tls.certresolver=cloudflare"
               volumes:
