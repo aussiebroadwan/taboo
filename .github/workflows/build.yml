@@ -59,7 +59,7 @@ jobs:
       - name: Deploy docker stack
         uses: cssnr/stack-deploy-action@v1
         with:
-          name: ${{ secrets.DEPLOY_STACK_NAME }}
+          name: tab
           file: docker-stack-filled.yml
           user: deploy
           host: ${{ secrets.DEPLOY_HOST }}
