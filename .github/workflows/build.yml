@@ -44,44 +44,23 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Generate docker-compose file
+        
+      - name: Substitute Environment Variables in docker-stack.yml
+        run: |
+          # Using envsubst to substitute variables in-place
+          envsubst < docker-stack.yml > docker-stack-filled.yml
         env:
           REGISTRY: ${{ env.REGISTRY }}
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
           GITHUB_SHA: ${{ github.sha }}
           DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
           DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
-        run: |
-          cat <<EOF > docker-compose.yml
-          services:
-            taboo:
-              image: ${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA}
-              environment:
-                - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
-                - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
-              deploy:
-                mode: global
-                placement:
-                  constraints:
-                    - node.role == manager
-                labels:
-                  - "traefik.enable=true"
-                  - "traefik.http.services.taboo.loadbalancer.server.port=8080"
-                  - "traefik.http.routers.taboo.rule=Host(\`taboo.tabdiscord.com\`)"
-                  - "traefik.http.routers.taboo.entrypoints=websecure"
-                  - "traefik.http.routers.taboo.tls.certresolver=cloudflare"
-              volumes:
-                - tabo-data:/data
-          volumes:
-            tabo-data:
-          EOF
-
+  
       - name: Deploy docker stack
         uses: cssnr/stack-deploy-action@v1
         with:
           name: ${{ secrets.DEPLOY_STACK_NAME }}
-          file: docker-compose.yml
+          file: docker-stack-filled.yml
           user: deploy
           host: ${{ secrets.DEPLOY_HOST }}
           ssh_key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
