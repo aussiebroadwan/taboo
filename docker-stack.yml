@@ -8,6 +8,11 @@ services:
       - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
       - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
 
+    # Connect the service to the "proxy" network for routing by Traefik
+    networks:
+      - proxy 
+
+    # Store data in a named volume to persist data across container restarts
     volumes:
       - tabo-data:/data
 
