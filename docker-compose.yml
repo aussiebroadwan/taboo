@@ -1,13 +1,11 @@
 services:
-  tabo:
+  taboo:
     build: .
     ports:
       - "8080:8080"
     env_file: ".env"
     volumes:
-      - tabo-data:/data
-  
+      - taboo-data:/data
+
 volumes:
-  tabo-data:
-
-
+  taboo-data:

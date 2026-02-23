@@ -1,0 +1,4 @@
+environment: "production"
+server:
+  port: [invalid
+  this is not: valid: yaml: {{{}}}

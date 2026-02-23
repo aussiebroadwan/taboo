@@ -1,96 +1,238 @@
+/* -- Reset & base --------------------------------------------------------- */
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #fff;
+    color: #000;
+    margin: 0;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+    display: flex;
+    width: 100vw;
+    height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+/* -- App container -------------------------------------------------------- */
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+    margin: auto;
+    width: 90%;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vanilla:hover {
-  filter: drop-shadow(0 0 2em #f7df1eaa);
+@media (min-aspect-ratio: 16/9) {
+    #app { width: 70%; }
 }
 
-.card {
-  padding: 2em;
+@media (min-aspect-ratio: 20/9) {
+    #app { width: 60%; }
 }
 
-.read-the-docs {
-  color: #888;
+@media (min-aspect-ratio: 8/3) {
+    #app { width: 45%; }
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+/* -- Game container ------------------------------------------------------- */
+
+.game-container {
+    position: relative;
+    aspect-ratio: 720 / 364;
+    container-type: inline-size;
+    width: 100%;
+    overflow: hidden;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* -- Counter bar ---------------------------------------------------------- */
+
+.counter-bar {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.56cqi; /* ~4px at 720 */
+    position: absolute;
+    top: 2.78cqi; /* 20/720 */
+    right: 0;
+}
+
+/* -- Large counter (Next Game / Drawing Game) ----------------------------- */
+
+.counter-large {
+    width: 18.33cqi; /* 132/720 */
+    height: 7.22cqi; /* 52/720 */
+    border-radius: 0.28cqi;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    user-select: none;
+}
+
+.counter-large__title {
+    font-size: 1.39cqi; /* 10/720 */
+    font-weight: bold;
+    line-height: 1;
+}
+
+.counter-large__value {
+    font-size: 3.33cqi; /* 24/720 */
+    font-weight: bold;
+    line-height: 1.4;
+}
+
+/* -- Small counter (Heads / Tails) ---------------------------------------- */
+
+.counter-small {
+    width: 8.89cqi; /* 64/720 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+}
+
+.counter-small__title {
+    font-size: 1.39cqi;
+    font-weight: bold;
+    line-height: 1;
+    margin-bottom: 0.83cqi;
+}
+
+.counter-small__box {
+    width: 100%;
+    height: 4.44cqi; /* 32/720 */
+    border-radius: 0.28cqi;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.counter-small__value {
+    font-size: 3.33cqi;
+    font-weight: bold;
+    color: #fff;
+    line-height: 1;
+}
+
+/* -- Grid section --------------------------------------------------------- */
+
+.grid-section {
+    position: absolute;
+    top: 10.56cqi; /* 76/720 */
+    left: 0;
+    right: 0;
+}
+
+.grid-half {
+    display: flex;
+    gap: 0.56cqi;
+    margin-bottom: 1.11cqi; /* 8/720 gap between halves */
+}
+
+.grid-half:last-child {
+    margin-bottom: 0;
+}
+
+/* Vertical label (Heads / Tails) */
+.grid-label {
+    width: 5.56cqi; /* 40/720 */
+    min-height: 19.44cqi; /* 140/720 */
+    border-radius: 0.28cqi;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+
+.grid-label__text {
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    font-size: 2.5cqi; /* 18/720 */
+    font-weight: bold;
+    color: #fff;
+}
+
+/* 10x4 number grid */
+.grid-cells {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 0.56cqi;
+}
+
+/* Individual cell */
+.grid-cell {
+    aspect-ratio: 2 / 1;
+    border-radius: 0.28cqi;
+    background-color: #D9D9D9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5cqi;
+    font-weight: bold;
+    color: transparent;
+    user-select: none;
+    transition: none;
+}
+
+.grid-cell--picked {
+    color: #fff;
+}
+
+/* -- Loading overlay ------------------------------------------------------ */
+
+.loading-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5cqi;
+    background-color: #fff;
+    transition: opacity 0.4s ease-out;
+}
+
+.loading-overlay--hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-spinner {
+    width: 5cqi;
+    height: 5cqi;
+    border: 0.5cqi solid #e0e0e0;
+    border-top-color: #888;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-label {
+    font-size: 2cqi;
+    color: #888;
+}
+
+/* -- Flying pick animation ------------------------------------------------ */
+
+.pick-fly {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #fff;
+    pointer-events: none;
+    z-index: 10;
 }

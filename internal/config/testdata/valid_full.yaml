@@ -1,0 +1,33 @@
+environment: "production"
+
+server:
+  host: "127.0.0.1"
+  port: 9090
+  read_timeout: "15s"
+  write_timeout: "15s"
+  shutdown_timeout: "5s"
+  sse_heartbeat: "10s"
+  request_timeout: "20s"
+  cors_origins:
+    - "https://example.com"
+    - "https://app.example.com"
+  rate_limit: 50
+  rate_burst: 10
+
+game:
+  draw_duration: "60s"
+  wait_duration: "30s"
+  pick_count: 10
+  max_number: 40
+
+database:
+  driver: "sqlite"
+  dsn: "production.db"
+
+logging:
+  level: "warn"
+  format: "json"
+
+discord:
+  client_id: "test-client-id"
+  client_secret: "test-client-secret"

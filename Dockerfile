@@ -31,36 +31,43 @@ RUN npm run build
 # =============================================================================
 # Stage: backendbase
 #
-# Build the base image with the necessary tools so that it can be used in the 
-# build stage without having to install them again. 
+# Build the base image with the necessary tools so that it can be used in the
+# build stage without having to install them again.
 # =============================================================================
 FROM golang:alpine AS backendbase
 
 WORKDIR /usr/src/app
 
-RUN apk update && apk upgrade && apk add --no-cache ca-certificates \
+RUN apk update && apk upgrade && apk add --no-cache ca-certificates git \
     && update-ca-certificates
 
 # =============================================================================
-# Stage: backendbuild
+# Stage: build
 #
-# Download project dependencies, generate sqlc and swag, and build the project.
+# Download project dependencies, build the Go binary with version info.
 # =============================================================================
 FROM backendbase AS build
 
 WORKDIR /usr/src/app
 
-# pre-copy/cache go.mod for pre-downloading dependencies and only redownloading 
+# pre-copy/cache go.mod for pre-downloading dependencies and only redownloading
 # them in subsequent builds if they change
-COPY backend/go.mod backend/go.sum ./
+COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
-# Copy the built frontend files from the frontend stage
-COPY --from=webbuild /usr/src/app/dist ./assets/dist
+# Copy the built frontend files into the embedded directory
+COPY --from=webbuild /usr/src/app/dist ./internal/frontend/dist/
 
-COPY ./backend .
+# Copy all Go source
+COPY . .
 
-RUN CGO_ENABLED=0 go build -v -o /bin/tabo .
+ARG VERSION=dev
+
+RUN CGO_ENABLED=0 go build -ldflags "\
+    -X github.com/aussiebroadwan/taboo/internal/app.Version=${VERSION} \
+    -X github.com/aussiebroadwan/taboo/internal/app.Commit=$(git rev-parse HEAD) \
+    -X github.com/aussiebroadwan/taboo/internal/app.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    -o /bin/taboo ./cmd/taboo
 
 # =============================================================================
 # Stage: release
@@ -70,8 +77,7 @@ RUN CGO_ENABLED=0 go build -v -o /bin/tabo .
 # =============================================================================
 FROM scratch AS release
 
-COPY --from=build /bin/tabo /bin/tabo
+COPY --from=build /bin/taboo /bin/taboo
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-CMD ["/bin/tabo"]
-
+CMD ["/bin/taboo"]

@@ -9,45 +9,8 @@
 </head>
 
 <body>
-    <div id="app">
-        <canvas id="canvas" />
-    </div>
-    <script type="module" src="/src/main.js"></script>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
 </body>
 
 </html>
-<style>
-    body {
-        display: flex;
-        width: 100vw;
-        height: 100vh;
-        margin: 0px;
-    }
-
-    #app {
-        margin: auto;
-        width: 90%;
-    }
-
-
-    /* For even wider viewports (e.g. 16:9 or wider), reduce further to 70% */
-    @media (min-aspect-ratio: 16/9) {
-        #app {
-            width: 70%;
-        }
-    }
-
-    /* For even wider viewports (e.g. 20:9 or wider), reduce further to 50% */
-    @media (min-aspect-ratio: 20/9) {
-        #app {
-            width: 60%;
-        }
-    }
-
-    /* For even wider viewports (e.g. 8:3 or wider), reduce further to 40% */
-    @media (min-aspect-ratio: 8/3) {
-        #app {
-            width: 45%;
-        }
-    }
-</style>

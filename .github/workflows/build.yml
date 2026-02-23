@@ -1,15 +1,16 @@
 name: Build
-    
+
 on:
   push:
     branches:
       - main
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: aussiebroadwan/taboo
 
 jobs:
-  build:
+  docker:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -19,7 +20,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Login to the Docker registry
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Log into registry ${{ env.REGISTRY }}
         uses: docker/login-action@v3
         with:
@@ -27,41 +33,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Build and push Docker image with Buildx
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           push: true
-          tags: | 
+          tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha}}
-            
-  deploy:
-    runs-on: ubuntu-latest
-    needs:
-      - build
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        
-      - name: Substitute Environment Variables in docker-stack.yml
-        run: |
-          # Using envsubst to substitute variables in-place
-          envsubst < docker-stack.yml > docker-stack-filled.yml
-        env:
-          REGISTRY: ${{ env.REGISTRY }}
-          IMAGE_NAME: ${{ env.IMAGE_NAME }}
-          GITHUB_SHA: ${{ github.sha }}
-          DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
-          DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
-  
-      - name: Deploy docker stack
-        uses: cssnr/stack-deploy-action@v1
-        with:
-          name: tab
-          file: docker-stack-filled.yml
-          user: deploy
-          host: ${{ secrets.DEPLOY_HOST }}
-          ssh_key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
-
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}

@@ -1,0 +1,44 @@
+# Taboo Configuration
+# Copy this file to config.yaml and adjust as needed.
+# Environment variables override config values (prefixed with TABOO_).
+
+# Environment: "development" or "production"
+# In development mode, CORS is permissive and debug features are enabled.
+environment: "development"
+
+# HTTP Server Configuration
+server:
+  host: "0.0.0.0"
+  port: 8080
+  read_timeout: "30s"
+  write_timeout: "30s"
+  shutdown_timeout: "10s"
+  request_timeout: "30s"      # Timeout for individual HTTP requests
+  sse_heartbeat: "15s"        # Interval for SSE heartbeat events
+  cors_origins: []            # Allowed CORS origins (ignored in development mode)
+  rate_limit: 100             # Requests per second per client
+  rate_burst: 20              # Maximum burst size for rate limiting
+
+# Game Engine Configuration
+game:
+  draw_duration: "90s"    # Duration of the drawing phase
+  wait_duration: "90s"    # Duration between draws
+  pick_count: 20          # Number of picks per game
+  max_number: 80          # Maximum number in the pool (1 to max_number)
+
+# Database Configuration
+database:
+  driver: "sqlite"        # Only sqlite is supported
+  dsn: "taboo.db"         # Database file path
+
+# Logging Configuration
+logging:
+  level: "info"           # debug, info, warn, error
+  format: "text"          # text, json
+
+# Discord Integration (optional)
+# These can also be set via environment variables:
+#   DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET
+discord:
+  client_id: ""
+  client_secret: ""

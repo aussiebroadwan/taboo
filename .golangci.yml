@@ -1,0 +1,80 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  default: none
+  enable:
+    # Default linters (explicit)
+    - errcheck      # Unchecked errors can be critical bugs
+    - govet         # Reports suspicious constructs
+    - staticcheck   # Static analysis checks
+    - unused        # Unused code detection
+    - ineffassign   # Detects ineffectual assignments
+
+    # Security
+    - gosec         # Inspects source code for security problems
+    - bidichk       # Checks for dangerous unicode character sequences
+
+    # Error handling
+    - errorlint     # Problems with error wrapping (Go 1.13+)
+    - nilerr        # Returns nil even when error is not nil
+    - errchkjson    # Checks types passed to json encoding functions
+
+    # Resource management
+    - bodyclose     # HTTP response body is closed
+    - sqlclosecheck # sql.Rows, sql.Stmt are closed
+
+    # Best practices
+    - contextcheck  # Check non-inherited context usage
+
+  settings:
+    errcheck:
+      exclude-functions:
+        - (io.Closer).Close
+        - (*os.File).Close
+        - (*compress/gzip.Writer).Close
+        - (*compress/gzip.Writer).Flush
+        - (net/http.ResponseWriter).Write
+        - (*net/http.Response).Body.Close
+        - io.Copy
+        - fmt.Fprintf
+        - fmt.Fprint
+        - fmt.Fprintln
+        - (*encoding/json.Encoder).Encode
+
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - std-error-handling
+    paths:
+      - internal/store/drivers/sqlite/gen  # sqlc generated code
+    rules:
+      # Disable errcheck and gosec G104 in test files
+      - path: _test\.go
+        linters:
+          - errcheck
+      - path: _test\.go
+        linters:
+          - gosec
+        text: "G104"
+
+      # G117: ClientSecret field name is appropriate for config
+      - path: internal/config/config\.go
+        linters:
+          - gosec
+        text: "G117"
+
+      # G304: Config file path loading is intentional
+      - path: internal/config/config\.go
+        linters:
+          - gosec
+        text: "G304"
+
+      # G704: SDK clients intentionally make HTTP requests
+      - path: ^sdk/
+        linters:
+          - gosec
+        text: "G704"
