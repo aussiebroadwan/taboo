@@ -127,8 +127,8 @@ func TestIntegration_ListGames(t *testing.T) {
 	client := sdk.NewClient(ts.URL)
 	ctx := context.Background()
 
-	// Wait for at least one game to be created
-	waitForGames(t, ctx, client, 1)
+	// Wait for at least 2 games so game 1 is no longer active (picks are hidden for active game)
+	waitForGames(t, ctx, client, 2)
 
 	// List games
 	resp, err := client.ListGames(ctx, nil)
@@ -136,11 +136,11 @@ func TestIntegration_ListGames(t *testing.T) {
 		t.Fatalf("ListGames failed: %v", err)
 	}
 
-	if len(resp.Games) < 1 {
-		t.Fatal("expected at least 1 game")
+	if len(resp.Games) < 2 {
+		t.Fatalf("expected at least 2 games, got %d", len(resp.Games))
 	}
 
-	// Verify game structure
+	// Verify completed game structure (first game is no longer active)
 	game := resp.Games[0]
 	if game.ID < 1 {
 		t.Errorf("expected game ID >= 1, got %d", game.ID)
@@ -151,6 +151,12 @@ func TestIntegration_ListGames(t *testing.T) {
 	if game.CreatedAt.IsZero() {
 		t.Error("expected non-zero CreatedAt")
 	}
+
+	// Verify active game has picks hidden
+	activeGame := resp.Games[len(resp.Games)-1]
+	if len(activeGame.Picks) != 0 {
+		t.Errorf("expected 0 picks for active game, got %d", len(activeGame.Picks))
+	}
 }
 
 func TestIntegration_GetGame(t *testing.T) {
@@ -160,10 +166,10 @@ func TestIntegration_GetGame(t *testing.T) {
 	client := sdk.NewClient(ts.URL)
 	ctx := context.Background()
 
-	// Wait for at least one game
-	waitForGames(t, ctx, client, 1)
+	// Wait for at least 2 games so game 1 is no longer active (picks are hidden for active game)
+	waitForGames(t, ctx, client, 2)
 
-	// Get the first game
+	// Get the first game (completed, not active)
 	game, err := client.GetGame(ctx, 1)
 	if err != nil {
 		t.Fatalf("GetGame failed: %v", err)
@@ -218,7 +224,7 @@ func TestIntegration_Pagination(t *testing.T) {
 
 	// List with limit 1
 	resp, err := client.ListGames(ctx, &sdk.ListGamesOptions{
-		Limit: sdk.Ptr(1),
+		Limit: new(1),
 	})
 	if err != nil {
 		t.Fatalf("ListGames failed: %v", err)
@@ -236,7 +242,7 @@ func TestIntegration_Pagination(t *testing.T) {
 	// Get next page using cursor
 	resp2, err := client.ListGames(ctx, &sdk.ListGamesOptions{
 		Cursor: resp.NextCursor,
-		Limit:  sdk.Ptr(1),
+		Limit:  new(1),
 	})
 	if err != nil {
 		t.Fatalf("ListGames (page 2) failed: %v", err)

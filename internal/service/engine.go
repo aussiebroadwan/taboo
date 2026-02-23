@@ -99,6 +99,7 @@ func (e *Engine) runGame(ctx context.Context) error {
 	if err := e.gameService.CreateGame(ctx, game); err != nil {
 		return err
 	}
+	e.gameService.SetActiveGameID(game.ID)
 
 	e.logger.Info("Game started",
 		slog.Int64("game_id", game.ID),

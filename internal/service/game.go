@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"sync/atomic"
 
 	"github.com/aussiebroadwan/taboo/internal/config"
 	"github.com/aussiebroadwan/taboo/internal/domain"
@@ -21,6 +22,8 @@ type GameService struct {
 	store  store.Store
 	config *config.GameConfig
 	broker *pubsub.Broker[Event]
+
+	activeGameID atomic.Int64
 }
 
 // NewGameService creates a new GameService.
@@ -67,14 +70,38 @@ func (s *GameService) BroadcastComplete(gameID int64) {
 	})
 }
 
-// GetGame retrieves a game by ID.
-func (s *GameService) GetGame(ctx context.Context, id int64) (*domain.Game, error) {
-	return s.store.GetGame(ctx, id)
+// SetActiveGameID sets the currently active game ID. Picks for the active
+// game are hidden from query results until the next game starts.
+func (s *GameService) SetActiveGameID(id int64) {
+	s.activeGameID.Store(id)
 }
 
-// ListGames retrieves games with cursor pagination.
+// GetGame retrieves a game by ID. Picks are hidden if the game is still active.
+func (s *GameService) GetGame(ctx context.Context, id int64) (*domain.Game, error) {
+	game, err := s.store.GetGame(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if game.ID == s.activeGameID.Load() {
+		game.Picks = nil
+	}
+	return game, nil
+}
+
+// ListGames retrieves games with cursor pagination. Picks are hidden for the
+// active game.
 func (s *GameService) ListGames(ctx context.Context, cursor int64, limit int) ([]*domain.Game, error) {
-	return s.store.ListGames(ctx, cursor, limit)
+	games, err := s.store.ListGames(ctx, cursor, limit)
+	if err != nil {
+		return nil, err
+	}
+	activeID := s.activeGameID.Load()
+	for _, g := range games {
+		if g.ID == activeID {
+			g.Picks = nil
+		}
+	}
+	return games, nil
 }
 
 // CreateGame persists a new game.

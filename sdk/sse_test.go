@@ -148,7 +148,7 @@ func TestChannelHandler(t *testing.T) {
 
 	// Check events
 	events := []any{}
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		select {
 		case e := <-handler.Events():
 			events = append(events, e)

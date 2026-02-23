@@ -36,10 +36,10 @@ func readSSEEvent(reader *bufio.Reader) (eventType, data string, err error) {
 			continue
 		}
 
-		if strings.HasPrefix(line, "event: ") {
-			eventType = strings.TrimPrefix(line, "event: ")
-		} else if strings.HasPrefix(line, "data: ") {
-			data = strings.TrimPrefix(line, "data: ")
+		if after, ok := strings.CutPrefix(line, "event: "); ok {
+			eventType = after
+		} else if after, ok := strings.CutPrefix(line, "data: "); ok {
+			data = after
 		}
 	}
 }
@@ -103,11 +103,9 @@ func TestSSE_ReceiveEvent(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/events", nil).WithContext(ctx)
 
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		server.handleEvents(w, req)
-	}()
+	})
 
 	// Wait for headers to be set up before broadcasting
 	w.WaitForHeaders()
@@ -153,11 +151,9 @@ func TestSSE_MultipleEvents(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/events", nil).WithContext(ctx)
 
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		server.handleEvents(w, req)
-	}()
+	})
 
 	w.WaitForHeaders()
 	// Small delay to ensure subscription is established after headers
@@ -172,7 +168,7 @@ func TestSSE_MultipleEvents(t *testing.T) {
 
 	// Read all three events
 	picks := make([]string, 0, 3)
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		eventType, data, err := readSSEEvent(reader)
 		if err != nil {
 			t.Fatalf("failed to read event %d: %v", i, err)
@@ -216,11 +212,9 @@ func TestSSE_Heartbeat(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/events", nil).WithContext(ctx)
 
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		server.handleEvents(w, req)
-	}()
+	})
 
 	reader := bufio.NewReader(pr)
 
@@ -299,7 +293,7 @@ func TestSSE_MultipleClients(t *testing.T) {
 	writers := make([]*sseResponseWriter, clientCount)
 	var wg sync.WaitGroup
 
-	for i := 0; i < clientCount; i++ {
+	for i := range clientCount {
 		pr, pw := io.Pipe()
 		defer pr.Close()
 		defer pw.Close()
@@ -313,11 +307,9 @@ func TestSSE_MultipleClients(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/events", nil).WithContext(ctx)
 
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			server.handleEvents(w, req)
-		}()
+		})
 	}
 
 	// Wait for all clients to be ready

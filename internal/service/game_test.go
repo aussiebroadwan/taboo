@@ -196,8 +196,7 @@ func TestGameService_Subscribe(t *testing.T) {
 	store := newMockStore()
 	svc := NewGameService(store, defaultGameConfig())
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	ch := svc.Subscribe(ctx)
 	if ch == nil {
@@ -209,8 +208,7 @@ func TestGameService_BroadcastState(t *testing.T) {
 	store := newMockStore()
 	svc := NewGameService(store, defaultGameConfig())
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	ch := svc.Subscribe(ctx)
 
@@ -242,8 +240,7 @@ func TestGameService_BroadcastPick(t *testing.T) {
 	store := newMockStore()
 	svc := NewGameService(store, defaultGameConfig())
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	ch := svc.Subscribe(ctx)
 
@@ -270,8 +267,7 @@ func TestGameService_BroadcastComplete(t *testing.T) {
 	store := newMockStore()
 	svc := NewGameService(store, defaultGameConfig())
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	ch := svc.Subscribe(ctx)
 

@@ -9,8 +9,7 @@ import (
 
 func TestBroker_Subscribe_ReturnsChannel(t *testing.T) {
 	b := New[string]()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	ch := b.Subscribe(ctx)
 	if ch == nil {
@@ -20,8 +19,7 @@ func TestBroker_Subscribe_ReturnsChannel(t *testing.T) {
 
 func TestBroker_Publish_SingleSubscriber(t *testing.T) {
 	b := New[string]()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	ch := b.Subscribe(ctx)
 	b.Publish("hello")
@@ -43,7 +41,7 @@ func TestBroker_Publish_MultipleSubscribers(t *testing.T) {
 	channels := make([]<-chan int, subscriberCount)
 	cancels := make([]context.CancelFunc, subscriberCount)
 
-	for i := 0; i < subscriberCount; i++ {
+	for i := range subscriberCount {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancels[i] = cancel
 		channels[i] = b.Subscribe(ctx)
@@ -100,8 +98,7 @@ func TestBroker_ContextCancellation(t *testing.T) {
 
 func TestBroker_SlowSubscriber(t *testing.T) {
 	b := New[int](WithBufferSize[int](2))
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	ch := b.Subscribe(ctx)
 
@@ -114,7 +111,7 @@ func TestBroker_SlowSubscriber(t *testing.T) {
 
 	// Should only receive first two
 	received := make([]int, 0, 2)
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		select {
 		case msg := <-ch:
 			received = append(received, msg)
@@ -174,8 +171,7 @@ func TestBroker_SubscriberCount(t *testing.T) {
 
 func TestBroker_WithBufferSize(t *testing.T) {
 	b := New[int](WithBufferSize[int](3))
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	ch := b.Subscribe(ctx)
 
@@ -186,7 +182,7 @@ func TestBroker_WithBufferSize(t *testing.T) {
 	b.Publish(4) // Should be dropped
 
 	received := make([]int, 0, 3)
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		select {
 		case msg := <-ch:
 			received = append(received, msg)
@@ -202,8 +198,7 @@ func TestBroker_WithBufferSize(t *testing.T) {
 
 func TestBroker_ConcurrentPublish(t *testing.T) {
 	b := New[int](WithBufferSize[int](1000))
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	ch := b.Subscribe(ctx)
 
@@ -213,10 +208,10 @@ func TestBroker_ConcurrentPublish(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(publishers)
 
-	for i := 0; i < publishers; i++ {
+	for i := range publishers {
 		go func(id int) {
 			defer wg.Done()
-			for j := 0; j < messagesPerPublisher; j++ {
+			for j := range messagesPerPublisher {
 				b.Publish(id*messagesPerPublisher + j)
 			}
 		}(i)
@@ -251,7 +246,7 @@ func TestBroker_ConcurrentSubscribe(t *testing.T) {
 
 	cancels := make([]context.CancelFunc, subscribers)
 
-	for i := 0; i < subscribers; i++ {
+	for i := range subscribers {
 		go func(idx int) {
 			defer wg.Done()
 			ctx, cancel := context.WithCancel(context.Background())
@@ -283,7 +278,7 @@ func TestBroker_ConcurrentPublishSubscribe(t *testing.T) {
 	// Start subscribers
 	const subCount = 5
 	wg.Add(subCount)
-	for i := 0; i < subCount; i++ {
+	for range subCount {
 		go func() {
 			defer wg.Done()
 			ch := b.Subscribe(ctx)
@@ -301,10 +296,10 @@ func TestBroker_ConcurrentPublishSubscribe(t *testing.T) {
 	const msgCount = 50
 	var pubWg sync.WaitGroup
 	pubWg.Add(pubCount)
-	for i := 0; i < pubCount; i++ {
+	for range pubCount {
 		go func() {
 			defer pubWg.Done()
-			for j := 0; j < msgCount; j++ {
+			for j := range msgCount {
 				b.Publish(j)
 			}
 		}()

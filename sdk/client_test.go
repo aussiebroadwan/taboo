@@ -66,8 +66,8 @@ func TestClient_ListGames_WithOptions(t *testing.T) {
 
 	client := sdk.NewClient(server.URL)
 	_, err := client.ListGames(context.Background(), &sdk.ListGamesOptions{
-		Cursor: sdk.Ptr(int64(100)),
-		Limit:  sdk.Ptr(50),
+		Cursor: new(int64(100)),
+		Limit:  new(50),
 	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)

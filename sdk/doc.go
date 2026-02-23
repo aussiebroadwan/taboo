@@ -47,6 +47,8 @@
 package sdk
 
 // Ptr returns a pointer to the given value. Useful for optional parameters.
+//
+//go:fix inline
 func Ptr[T any](v T) *T {
-	return &v
+	return new(v)
 }

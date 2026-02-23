@@ -17,7 +17,7 @@ func TestRateLimit_AllowsWithinLimit(t *testing.T) {
 	}))
 
 	// First 5 requests should succeed (burst)
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.RemoteAddr = "192.168.1.1:12345"
 		rec := httptest.NewRecorder()
@@ -40,7 +40,7 @@ func TestRateLimit_BlocksExcessRequests(t *testing.T) {
 	}))
 
 	// Exhaust the burst
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.RemoteAddr = "192.168.1.2:12345"
 		rec := httptest.NewRecorder()

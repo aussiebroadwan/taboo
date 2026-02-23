@@ -142,8 +142,8 @@ func (c *SSEClient) connect(ctx context.Context) error {
 			continue
 		}
 
-		if strings.HasPrefix(line, "event:") {
-			eventType = strings.TrimSpace(strings.TrimPrefix(line, "event:"))
+		if after, ok := strings.CutPrefix(line, "event:"); ok {
+			eventType = strings.TrimSpace(after)
 		} else if strings.HasPrefix(line, "data:") {
 			if data.Len() > 0 {
 				data.WriteString("\n")
